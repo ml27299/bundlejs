@@ -234,8 +234,10 @@ class Bundle {
 	}
 
 	findLoadableComponentByRoute(route = required`route`) {
+		console.log({ route });
 		const { loadable: asset } = this.findBundleByRoute(route) || {};
 		if (!asset) return;
+		console.log({ asset });
 		try {
 			const component = asset(`./${route.component}.loadable.js`);
 			return component.default;
