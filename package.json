@@ -21,7 +21,9 @@
 	"resolutions": {
 		"babel-core": "7.0.0-bridge.0"
 	},
-	"dependencies": {},
+	"dependencies": {
+		"node-match-path": "^0.6.3"
+	},
 	"devDependencies": {
 		"@babel/core": "7.2.2",
 		"@babel/plugin-proposal-decorators": "^7.8.3",
