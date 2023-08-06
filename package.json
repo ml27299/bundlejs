@@ -1,6 +1,6 @@
 {
 	"name": "@bundlejs/core",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"engines": {
 		"node": ">=10.15.0",
 		"npm": ">=6.9.0"
@@ -10,7 +10,10 @@
 	"scripts": {
 		"clean": "rm -rf dist",
 		"build": "npm run clean && NODE_ENV=development webpack --progress",
-		"build:prod": "NODE_ENV=production webpack"
+		"build:prod": "NODE_ENV=production webpack",
+		"release:patch": "np patch --any-branch --no-2fa --branch master --no-publish --no-release-draft",
+		"release:minor": "np minor --no-2fa --any-branch --branch master --no-publish --no-release-draft",
+		"release:major": "np major --no-2fa --any-branch --branch master --no-publish --no-release-draft"
 	},
 	"browserslist": [
 		">0.2%",

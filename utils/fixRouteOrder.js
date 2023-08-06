@@ -1,6 +1,5 @@
 export const fixRouteOrder = (routes = []) => {
 	if (routes.length === 0) return routes;
-	console.log("routes", routes);
 	const wildCardRoutes = routes.filter((route) => ~route.path.indexOf(":"));
 	const starWildCardRoutes = routes.filter((route) => ~route.path.indexOf("*"));
 
