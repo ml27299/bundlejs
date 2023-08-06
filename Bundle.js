@@ -20,13 +20,13 @@ class Bundle {
 		for (const bundlePath of values) {
 			const { routes: asset } = this.findBundleByRoute({ bundlePath });
 			if (!asset) continue;
-			console.log({ bundlePath });
+
 			const routeFilePaths = asset.keys();
 			const routes = routeFilePaths
 				.map((p) => asset(p).default)
 				.flat()
 				.filter(Boolean);
-			console.log({ routes });
+
 			routes.forEach((route) => {
 				this.routes.push(this.__configureRoute(route, bundlePath));
 			});
@@ -58,7 +58,6 @@ class Bundle {
 			if (currentRouteBundlePath) return [currentRouteBundlePath];
 		}
 		const paths = this.req.keys();
-		console.log({ paths });
 		return paths.map((p) => path.dirname(p).replace("./", ""));
 	}
 
@@ -234,10 +233,8 @@ class Bundle {
 	}
 
 	findLoadableComponentByRoute(route = required`route`) {
-		console.log({ route });
 		const { loadable: asset } = this.findBundleByRoute(route) || {};
 		if (!asset) return;
-		console.log({ asset });
 		try {
 			const component = asset(`./${route.component}.loadable.js`);
 			return component.default;
