@@ -28,12 +28,13 @@ class Bundle {
 				.filter(Boolean);
 
 			routes.forEach((route, index) => {
-				const { existingRoute, route: newRoute } = this.__configureRoute(
+				const { existingRouteIndex, route: newRoute } = this.__configureRoute(
 					route,
 					bundlePath
 				);
-				if (existingRoute) this.routes[index] = route;
-				else this.routes.push(route);
+				if (existingRouteIndex !== -1)
+					this.routes[existingRouteIndex] = newRoute;
+				else this.routes.push(newRoute);
 			});
 		}
 
@@ -74,7 +75,7 @@ class Bundle {
 		const { pageBundlePath } = this.options;
 		if (existingRouteIndex === -1) {
 			return {
-				existingRoute: false,
+				existingRouteIndex,
 				route: {
 					...route,
 					__componentPaths: this.routes.map(
@@ -93,7 +94,7 @@ class Bundle {
 		}
 
 		return {
-			existingRoute: true,
+			existingRouteIndex,
 			route: {
 				...this.routes[existingRouteIndex],
 				__componentPaths: this.routes.map(
