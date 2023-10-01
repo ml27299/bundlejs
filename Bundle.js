@@ -27,8 +27,13 @@ class Bundle {
 				.flat()
 				.filter(Boolean);
 
-			routes.forEach((route) => {
-				this.routes.push(this.__configureRoute(route, bundlePath));
+			routes.forEach((route, index) => {
+				const { existingRoute, route: newRoute } = this.__configureRoute(
+					route,
+					bundlePath
+				);
+				if (existingRoute) this.routes[index] = route;
+				else this.routes.push(route);
 			});
 		}
 
@@ -69,29 +74,35 @@ class Bundle {
 		const { pageBundlePath } = this.options;
 		if (existingRouteIndex === -1) {
 			return {
-				...route,
+				existingRoute: false,
+				route: {
+					...route,
+					__componentPaths: this.routes.map(
+						(route) => route.componentPath || bundlePath
+					),
+					ssr: route.ssr || route.seo,
+					componentPath: route.componentPath || bundlePath,
+					bundlePath: route.bundlePath || bundlePath,
+					loadablePath: pageBundlePath
+						? bundlePath
+						: bundlePath === "."
+						? "ROOT_BUNDLE"
+						: bundlePath,
+				},
+			};
+		}
+
+		return {
+			existingRoute: true,
+			route: {
+				...this.routes[existingRouteIndex],
 				__componentPaths: this.routes.map(
 					(route) => route.componentPath || bundlePath
 				),
 				ssr: route.ssr || route.seo,
 				componentPath: route.componentPath || bundlePath,
 				bundlePath: route.bundlePath || bundlePath,
-				loadablePath: pageBundlePath
-					? bundlePath
-					: bundlePath === "."
-					? "ROOT_BUNDLE"
-					: bundlePath,
-			};
-		}
-
-		return {
-			...this.routes[existingRouteIndex],
-			__componentPaths: this.routes.map(
-				(route) => route.componentPath || bundlePath
-			),
-			ssr: route.ssr || route.seo,
-			componentPath: route.componentPath || bundlePath,
-			bundlePath: route.bundlePath || bundlePath,
+			},
 		};
 	}
 
