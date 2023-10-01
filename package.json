@@ -1,6 +1,6 @@
 {
 	"name": "@bundlejs/core",
-	"version": "0.0.3",
+	"version": "0.1.0",
 	"engines": {
 		"node": ">=10.15.0",
 		"npm": ">=6.9.0"
