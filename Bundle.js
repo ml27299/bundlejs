@@ -47,7 +47,7 @@ class Bundle {
 							.name.split(".")[0];
 						const targetPath = path
 							.dirname(targetLoadablePath)
-							.replace(bundlePath, "");
+							.replace(bundlePath + "/", "");
 						newRoute.component = `${targetPath}/${targetPathName}`;
 					}
 				}
