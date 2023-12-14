@@ -18,20 +18,37 @@ class Bundle {
 		this.routes = [];
 		const values = this.values;
 		for (const bundlePath of values) {
-			const { routes: asset } = this.findBundleByRoute({ bundlePath });
+			const { routes: asset, loadable } = this.findBundleByRoute({
+				bundlePath,
+			});
 			if (!asset) continue;
 
 			const routeFilePaths = asset.keys();
 			const routes = routeFilePaths
-				.map((p) => asset(p).default)
+				.map((p) => ({ value: asset(p).default, routeFilePath: p }))
 				.flat()
 				.filter(Boolean);
 
-			routes.forEach((route, index) => {
+			routes.forEach(({ value, routeFilePath }, index) => {
 				const { existingRouteIndex, route: newRoute } = this.__configureRoute(
-					route,
+					value,
 					bundlePath
 				);
+				if (!newRoute.component) {
+					const rootPath = path.direname(path.dirname(routeFilePath));
+					const targetLoadablePath = loadable
+						.keys()
+						.find((p) => path.dirname(p) === rootPath);
+					if (targetLoadablePath) {
+						const targetPathName = path
+							.parse(targetLoadablePath)
+							.name.split(".")[0];
+						const targetPath = path
+							.dirname(targetLoadablePath)
+							.replace(bundlePath, "");
+						newRoute.component = `${targetPath}/${targetPathName}`;
+					}
+				}
 				if (existingRouteIndex !== -1)
 					this.routes[existingRouteIndex] = newRoute;
 				else this.routes.push(newRoute);
