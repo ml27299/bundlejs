@@ -19,12 +19,14 @@ class Bundle {
 		this.routesMap = {};
 		const values = this.values;
 
+		const hasRootBundle = values.includes(".");
+
 		for (const bundlePath of values) {
 			if (bundlePath === ".") continue;
-			this.__addRoutes(bundlePath);
+			this.__addRoutes(bundlePath, hasRootBundle);
 		}
 
-		this.__addRoutes(".");
+		if (hasRootBundle) this.__addRoutes(".");
 
 		if (isBrowser && NODE_ENV !== "test") {
 			const routes = fixRouteOrder(this.routes);
@@ -63,7 +65,7 @@ class Bundle {
 		return paths.map((p) => path.dirname(p).replace("./", ""));
 	}
 
-	__addRoutes(bundlePath) {
+	__addRoutes(bundlePath, hasRootBundle = false) {
 		const generateRoutesFromFilePaths = (filePaths) => {
 			let routes = [];
 			filePaths.forEach((p) => {
@@ -97,7 +99,9 @@ class Bundle {
 
 		const routes = generateRoutesFromFilePaths(asset.keys());
 		routes.forEach(({ value, routeFilePath }) => {
-			if (this.routesMap[value.path]) return;
+			if (this.routesMap[value.path]) {
+				return;
+			}
 			const { route } = this.__configureRoute(value, bundlePath);
 			if (!route.component) {
 				route.component = inferComponentByRouteFilePath(
@@ -105,20 +109,16 @@ class Bundle {
 					loadable
 				);
 			}
+
+			if (hasRootBundle) route.loadablePath = "ROOT_BUNDLE";
 			this.routes.push(route);
 			this.routesMap[value.path] = route;
 		});
 	}
 
 	__configureRoute(route, bundlePath) {
-		// const existingRouteIndex = this.routes.findIndex(
-		// 	(existingRoute) => existingRoute.path === route.path
-		// );
-
 		const { pageBundlePath } = this.options;
-		//if (existingRouteIndex === -1) {
 		return {
-			existingRouteIndex,
 			route: {
 				...route,
 				__componentPaths: this.routes.map(
@@ -134,20 +134,6 @@ class Bundle {
 					: bundlePath,
 			},
 		};
-		//}
-
-		// return {
-		// 	existingRouteIndex,
-		// 	route: {
-		// 		...this.routes[existingRouteIndex],
-		// 		__componentPaths: this.routes.map(
-		// 			(route) => route.componentPath || bundlePath
-		// 		),
-		// 		ssr: route.ssr || route.seo,
-		// 		componentPath: route.componentPath || bundlePath,
-		// 		bundlePath: route.bundlePath || bundlePath,
-		// 	},
-		// };
 	}
 
 	__getPaths(
