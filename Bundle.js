@@ -88,7 +88,7 @@ class Bundle {
 				.dirname(targetLoadablePath)
 				.replace(bundlePath + "/", "");
 
-			if (!targetPath) return targetPathName;
+			if (!targetPath || targetPath === ".") return targetPathName;
 			return `${targetPath}/${targetPathName}`;
 		};
 
