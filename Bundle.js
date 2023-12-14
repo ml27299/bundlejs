@@ -37,7 +37,7 @@ class Bundle {
 					bundlePath
 				);
 				if (!newRoute.component) {
-					const rootPath = path.direname(path.dirname(routeFilePath));
+					const rootPath = path.dirname(path.dirname(routeFilePath));
 					const targetLoadablePath = loadable
 						.keys()
 						.find((p) => path.dirname(p) === rootPath);
