@@ -16,52 +16,29 @@ class Bundle {
 		this.req = req;
 
 		this.routes = [];
+		this.routesMap = {};
 		const values = this.values;
+
 		for (const bundlePath of values) {
-			const { routes: asset, loadable } = this.findBundleByRoute({
-				bundlePath,
-			});
-			if (!asset) continue;
-
-			const routeFilePaths = asset.keys();
-			let routes = [];
-			routeFilePaths.forEach((p) => {
-				(asset(p).default || [])
-					.filter(Boolean)
-					.forEach((route) => routes.push({ value: route, routeFilePath: p }));
-			});
-
-			routes.forEach(({ value, routeFilePath }, index) => {
-				const { existingRouteIndex, route: newRoute } = this.__configureRoute(
-					value,
-					bundlePath
-				);
-				if (!newRoute.component) {
-					const rootPath = path.dirname(path.dirname(routeFilePath));
-					const targetLoadablePath = loadable
-						.keys()
-						.find((p) => path.dirname(p) === rootPath);
-					if (targetLoadablePath) {
-						const targetPathName = path
-							.parse(targetLoadablePath)
-							.name.split(".")[0];
-						const targetPath = path
-							.dirname(targetLoadablePath)
-							.replace(bundlePath + "/", "");
-						newRoute.component = `${targetPath}/${targetPathName}`;
-					}
-				}
-				if (existingRouteIndex !== -1)
-					this.routes[existingRouteIndex] = newRoute;
-				else this.routes.push(newRoute);
-			});
+			if (bundlePath === ".") continue;
+			this.__addRoutes(bundlePath);
 		}
+
+		this.__addRoutes(".");
 
 		if (isBrowser && NODE_ENV !== "test") {
 			const routes = fixRouteOrder(this.routes);
-			const currentRoute = routes.find((route) => {
-				return match(route.path, window.location.pathname);
-			});
+			let currentRoute = this.routesMap[window.location.pathname];
+			if (!currentRoute) {
+				let wildCardRoutes = routes.filter(
+					(route) =>
+						route.path.indexOf("*") !== -1 || route.path.indexOf(":") !== -1
+				);
+				wildCardRoutes = fixRouteOrder(wildCardRoutes);
+				currentRoute = wildCardRoutes.find((route) => {
+					return match(route.path, window.location.pathname);
+				});
+			}
 			const { hydrate, App } = this.findBundleByRoute(currentRoute);
 			hydrate(this.generate(currentRoute), currentRoute, App);
 		}
@@ -86,44 +63,91 @@ class Bundle {
 		return paths.map((p) => path.dirname(p).replace("./", ""));
 	}
 
+	__addRoutes(bundlePath) {
+		const generateRoutesFromFilePaths = (filePaths) => {
+			let routes = [];
+			filePaths.forEach((p) => {
+				(asset(p).default || [])
+					.filter(Boolean)
+					.forEach((route) => routes.push({ value: route, routeFilePath: p }));
+			});
+			return routes;
+		};
+
+		const inferComponentByRouteFilePath = (routeFilePath, loadable) => {
+			const rootPath = path.dirname(path.dirname(routeFilePath));
+			const targetLoadablePath = loadable
+				.keys()
+				.find((p) => path.dirname(p) === rootPath);
+			if (!targetLoadablePath) return;
+			const targetPathName = path.parse(targetLoadablePath).name.split(".")[0];
+
+			const targetPath = path
+				.dirname(targetLoadablePath)
+				.replace(bundlePath + "/", "");
+
+			if (!targetPath) return targetPathName;
+			return `${targetPath}/${targetPathName}`;
+		};
+
+		const { routes: asset, loadable } = this.findBundleByRoute({
+			bundlePath,
+		});
+		if (!asset) return;
+
+		const routes = generateRoutesFromFilePaths(asset.keys());
+		routes.forEach(({ value, routeFilePath }) => {
+			if (this.routesMap[value.path]) return;
+			const { route } = this.__configureRoute(value, bundlePath);
+			if (!route.component) {
+				route.component = inferComponentByRouteFilePath(
+					routeFilePath,
+					loadable
+				);
+			}
+			this.routes.push(route);
+			this.routesMap[value.path] = route;
+		});
+	}
+
 	__configureRoute(route, bundlePath) {
-		const existingRouteIndex = this.routes.findIndex(
-			(existingRoute) => existingRoute.path === route.path
-		);
+		// const existingRouteIndex = this.routes.findIndex(
+		// 	(existingRoute) => existingRoute.path === route.path
+		// );
 
 		const { pageBundlePath } = this.options;
-		if (existingRouteIndex === -1) {
-			return {
-				existingRouteIndex,
-				route: {
-					...route,
-					__componentPaths: this.routes.map(
-						(route) => route.componentPath || bundlePath
-					),
-					ssr: route.ssr || route.seo,
-					componentPath: route.componentPath || bundlePath,
-					bundlePath: route.bundlePath || bundlePath,
-					loadablePath: pageBundlePath
-						? bundlePath
-						: bundlePath === "."
-						? "ROOT_BUNDLE"
-						: bundlePath,
-				},
-			};
-		}
-
+		//if (existingRouteIndex === -1) {
 		return {
 			existingRouteIndex,
 			route: {
-				...this.routes[existingRouteIndex],
+				...route,
 				__componentPaths: this.routes.map(
 					(route) => route.componentPath || bundlePath
 				),
 				ssr: route.ssr || route.seo,
 				componentPath: route.componentPath || bundlePath,
 				bundlePath: route.bundlePath || bundlePath,
+				loadablePath: pageBundlePath
+					? bundlePath
+					: bundlePath === "."
+					? "ROOT_BUNDLE"
+					: bundlePath,
 			},
 		};
+		//}
+
+		// return {
+		// 	existingRouteIndex,
+		// 	route: {
+		// 		...this.routes[existingRouteIndex],
+		// 		__componentPaths: this.routes.map(
+		// 			(route) => route.componentPath || bundlePath
+		// 		),
+		// 		ssr: route.ssr || route.seo,
+		// 		componentPath: route.componentPath || bundlePath,
+		// 		bundlePath: route.bundlePath || bundlePath,
+		// 	},
+		// };
 	}
 
 	__getPaths(
