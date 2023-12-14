@@ -24,10 +24,12 @@ class Bundle {
 			if (!asset) continue;
 
 			const routeFilePaths = asset.keys();
-			const routes = routeFilePaths
-				.map((p) => ({ value: asset(p).default, routeFilePath: p }))
-				.flat()
-				.filter(Boolean);
+			let routes = [];
+			routeFilePaths.forEach((p) => {
+				(asset(p).default || [])
+					.filter(Boolean)
+					.forEach((route) => routes.push({ value: route, routeFilePath: p }));
+			});
 
 			routes.forEach(({ value, routeFilePath }, index) => {
 				const { existingRouteIndex, route: newRoute } = this.__configureRoute(
