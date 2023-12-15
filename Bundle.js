@@ -196,12 +196,17 @@ class Bundle {
 			.filter((p) => p.indexOf(path.dirname(componentPath) + "/") === 0);
 
 		targetPaths = filterNonRelevantPaths(targetPaths);
-		parentPaths = filterNonRelevantPaths(parentPaths);
 		childPaths = filterNonRelevantPaths(childPaths);
 
-		return Array.from(
-			new Set([...parentPaths, ...targetPaths, ...childPaths])
-		).filter(Boolean);
+		let allPaths = [];
+		if (route.includeParentPaths) {
+			parentPaths = filterNonRelevantPaths(parentPaths);
+			allPaths = [...parentPaths, ...targetPaths, ...childPaths];
+		} else {
+			allPaths = [...targetPaths, ...childPaths];
+		}
+
+		return Array.from(new Set(allPaths)).filter(Boolean);
 	}
 
 	__assetsWrapper(assets) {
