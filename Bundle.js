@@ -199,7 +199,7 @@ class Bundle {
 		childPaths = filterNonRelevantPaths(childPaths);
 
 		let allPaths = [];
-		if (route.includeParentPaths) {
+		if (route.includeParentResources) {
 			parentPaths = filterNonRelevantPaths(parentPaths);
 			allPaths = [...parentPaths, ...targetPaths, ...childPaths];
 		} else {
