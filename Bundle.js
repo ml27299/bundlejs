@@ -82,7 +82,7 @@ class Bundle {
 				.keys()
 				.find((p) => path.dirname(p) === rootPath);
 			if (!targetLoadablePath) return;
-			const targetPathName = path.parse(targetLoadablePath).name.split(".")[0];
+			const targetPathName = path.basename(targetLoadablePath).split(".")[0];
 
 			const targetPath = path
 				.dirname(targetLoadablePath)
